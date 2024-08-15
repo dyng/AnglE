@@ -4,7 +4,7 @@ from typing import cast, List, Dict, Union
 
 import numpy as np
 import torch
-from mteb import DRESModel
+from mteb.evaluation.evaluators.RetrievalEvaluator import DRESModel
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 

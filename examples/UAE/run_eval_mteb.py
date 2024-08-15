@@ -3,6 +3,8 @@
 import argparse
 import random
 
+import mteb
+
 from emb_model import EmbModel
 from mteb import MTEB
 
@@ -45,7 +47,8 @@ if __name__ == '__main__':
         "STSBenchmark",
         "SummEval",
     ] + ['TRECCOVID']
-    task_names = [t.description["name"] for t in MTEB(task_types=args.task_type, task_langs=['en']).tasks]
+    tasks = mteb.get_tasks(task_types=args.task_type, languages=['eng'])
+    task_names = [t.metadata.name for t in tasks]
     random.shuffle(task_names)
     for task in task_names:
         if task in ['MSMARCOv2']:
@@ -61,5 +64,7 @@ if __name__ == '__main__':
 
         model.query_instruction_for_retrieval = instruction
 
+        print(f"Start task: {task}")
         evaluation = MTEB(tasks=[task], task_langs=['en'], eval_splits = ["test" if task not in ['MSMARCO'] else 'dev'])
         evaluation.run(model, output_folder=f"en_results/{args.angle_name_or_path.split('/')[-1]}")
+        print(f"Finished task: {task}")
