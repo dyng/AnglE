@@ -99,8 +99,7 @@ else:
 
 ds = ds.rename_column('query', 'text').rename_column('answer', 'positive')
 
-train_ds = ds['train'].shuffle(args.dataset_seed).map(AngleDataTokenizer(model.tokenizer, model.max_length, prompt_template=args.prompt), num_proc=args.workers)
-
+ds = ds['train'].shuffle(args.dataset_seed).map(AngleDataTokenizer(model.tokenizer, model.max_length, prompt_template=args.prompt), num_proc=args.workers)
 
 argument_kwargs = {}
 if args.push_to_hub:
@@ -110,7 +109,7 @@ if args.push_to_hub:
 
 
 model.fit(
-    train_ds=train_ds,
+    train_ds=ds,
     output_dir=args.save_dir,
     batch_size=args.batch_size,
     epochs=args.epochs,

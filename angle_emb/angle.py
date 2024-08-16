@@ -662,10 +662,13 @@ class Pooler:
         :param pooling_strategy: Optional[str].
             Currently support [`cls`, `last`, `avg`, `cls_avg`, `max`]. Default None.
         """
-        all_layer_outputs = self.model(output_hidden_states=True, return_dict=True, **inputs).hidden_states
-        if return_all_layer_outputs:
-            return all_layer_outputs
-        outputs = all_layer_outputs[layer_index]
+        # all_layer_outputs = self.model(output_hidden_states=True, return_dict=True, **inputs).hidden_states
+        # if return_all_layer_outputs:
+        #     return all_layer_outputs
+        # outputs = all_layer_outputs[layer_index]
+
+        outputs = self.model(**inputs, output_hidden_states=False, output_attentions=False, return_dict=True)
+        outputs = outputs.last_hidden_state
         outputs = get_pooling(outputs, inputs,
                               pooling_strategy or self.pooling_strategy,
                               padding_strategy=self.padding_strategy)
