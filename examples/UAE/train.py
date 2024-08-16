@@ -19,6 +19,7 @@ parser.add_argument('--train_subset_name', type=str, default=None, help='Specify
 parser.add_argument('--prompt', type=str, default=None, help='Specify prompt')
 parser.add_argument('--save_dir', type=str, default=None, help='Specify save dir, default None')
 parser.add_argument('--seed', type=int, default=42, help='Specify random seed, default 42')
+parser.add_argument('--on_device', type=str, default=None, help='Specify training device, default None means using best device')
 parser.add_argument('--dataset_seed', type=int, default=None, help='Specify random dataset_seed, default None')
 parser.add_argument('--workers', type=int, default=25, help='Specify dataset workers, default None')
 parser.add_argument('--w1', type=float, default=1.0, help='Specify w1 (cosine), default 1.0')
@@ -48,6 +49,7 @@ parser.add_argument('--torch_dtype', type=str, default=None, help='Specify torch
 parser.add_argument('--fp16', type=bool, default=None, choices=[0, 1], help='Specify fp16, default None')
 parser.add_argument('--compute_similar_matrix', type=int, default=1, choices=[0, 1], help='Specify compute_similar_matrix, default 1')
 parser.add_argument('--push_to_hub', type=int, default=0, choices=[0, 1], help='Specify push_to_hub, default 0')
+parser.add_argument('--wandb_api_key', type=str, default=None,help='Specify wandb_api_key, default None')
 parser.add_argument('--hub_model_id', type=str, default=None, help='Specify push_to_hub_model_id, default None, format like organization/model_id')
 parser.add_argument('--model_name', type=str, default='roberta-large',
                     help='Specify model_name, default roberta-large')
@@ -60,6 +62,11 @@ if args.seed is not None and args.seed > 0:
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
+if args.wandb_api_key is None:
+    os.environ['WANDB_DISABLED'] = 'true'
+else:
+    import wandb
+    wandb.login(key=args.wandb_api_key)
 
 model = AnglE(args.model_name,
               max_length=args.maxlen,
@@ -67,6 +74,7 @@ model = AnglE(args.model_name,
               pretrained_lora_path=args.pretrained_lora_path,
               pooling_strategy=args.pooling_strategy,
               train_mode=True,
+              device=args.on_device,
               is_llm=args.is_llm,
               apply_lora=args.apply_lora,
               lora_config_kwargs={

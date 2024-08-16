@@ -1439,6 +1439,7 @@ class AnglE(AngleBase):
                 load_best_model_at_end=False,
                 ddp_find_unused_parameters=False if self.gpu_count > 1 else None,
                 label_names=['labels', 'seperate_ids', 'extra'],
+                use_cpu=True if self.device == 'cpu' else False,
                 **argument_kwargs,
             ),
             callbacks=callbacks,
