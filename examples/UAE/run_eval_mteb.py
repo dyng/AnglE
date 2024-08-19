@@ -33,23 +33,10 @@ if __name__ == '__main__':
                      pooling_method=args.pooling_method,
                      batch_size=args.batch_size)
 
-    
-    task_names = [
-        "BIOSSES",
-        "SICK-R",
-        "STS12",
-        "STS13",
-        "STS14",
-        "STS15",
-        "STS16",
-        "STS17",
-        "STS22",
-        "STSBenchmark",
-        "SummEval",
-    ] + ['TRECCOVID']
-    tasks = mteb.get_tasks(task_types=args.task_type, languages=['eng'])
+    tasks = mteb.get_tasks(task_types=[args.task_type], languages=['eng'])
     task_names = [t.metadata.name for t in tasks]
     random.shuffle(task_names)
+
     for task in task_names:
         if task in ['MSMARCOv2']:
             print('Skip task: {}, since it has no test split'.format(task))
