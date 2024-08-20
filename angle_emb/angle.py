@@ -631,11 +631,21 @@ class AllLayerFFN(nn.Module):
     def __init__(self, model: PreTrainedModel, num_layers: int, hidden_size: int):
         super().__init__()
         self.model = model
-        self.linear = nn.Linear(hidden_size * num_layers, hidden_size, bias=False)
+        self.ff1 = nn.Linear(hidden_size * (num_layers + 1), hidden_size)
+        self.activation = nn.ReLU()
+        self.ff2 = nn.Linear(hidden_size, hidden_size, bias=False)
 
-    def forward(self, inputs: Dict) -> torch.Tensor:
+    def forward(self,
+                inputs: Dict,
+                layer_index: int = -1,
+                embedding_start: Optional[int] = None,
+                embedding_size: Optional[int] = None,
+                return_all_layer_outputs: bool = False,
+                pooling_strategy: Optional[Union[int, str]] = None) -> torch.Tensor:
         outputs = self.model(output_hidden_states=True, **inputs)
-        outputs = self.linear(torch.cat(outputs.hidden_states[1:], dim=-1))
+        outputs = self.ff1(torch.cat(outputs.hidden_states, dim=-1))
+        outputs = self.activation(outputs)
+        outputs = self.ff2(outputs)
         outputs, _ = torch.max(outputs * inputs["attention_mask"][:, :, None], dim=1)
         return outputs
 
