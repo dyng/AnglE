@@ -627,6 +627,18 @@ class AngleDataCollator:
 
         return features
 
+class AllLayerFFN(nn.Module):
+    def __init__(self, model: PreTrainedModel, num_layers: int, hidden_size: int):
+        super().__init__()
+        self.model = model
+        self.linear = nn.Linear(hidden_size * num_layers, hidden_size, bias=False)
+
+    def forward(self, inputs: Dict) -> torch.Tensor:
+        outputs = self.model(output_hidden_states=True, **inputs)
+        outputs = self.linear(torch.cat(outputs.hidden_states[1:], dim=-1))
+        outputs, _ = torch.max(outputs * inputs["attention_mask"][:, :, None], dim=1)
+        return outputs
+
 
 class Pooler:
     """
@@ -1043,6 +1055,7 @@ class AnglE(AngleBase):
                  tokenizer_padding_side: Optional[str] = None,
                  apply_billm: bool = False,
                  billm_model_class: Optional[str] = None,
+                 new_embd: bool = False,
                  **kwargs: Any):
         super().__init__()
         self.max_length = max_length
@@ -1210,10 +1223,14 @@ class AnglE(AngleBase):
             self.backbone.print_trainable_parameters()
 
         self.backbone.config.use_cache = False
-        self.pooler = Pooler(
-            self.backbone,
-            pooling_strategy=self.pooling_strategy,
-            padding_strategy=self.tokenizer.padding_side)
+        if not new_embd:
+            self.pooler = Pooler(
+                self.backbone,
+                pooling_strategy=self.pooling_strategy,
+                padding_strategy=self.tokenizer.padding_side)
+        else:
+            self.pooler = AllLayerFFN(self.backbone, self.backbone.config.num_hidden_layers, self.backbone.config.hidden_size)
+            self.pooler.to(self.device)
 
         self.__cfg = {
             'model_name_or_path': model_name_or_path,

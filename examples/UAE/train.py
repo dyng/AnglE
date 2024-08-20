@@ -54,9 +54,9 @@ def parse_arguments():
     parser.add_argument('--push_to_hub', type=int, default=0, choices=[0, 1], help='Specify push_to_hub, default 0')
     parser.add_argument('--wandb_api_key', type=str, default=None,help='Specify wandb_api_key, default None')
     parser.add_argument('--hub_model_id', type=str, default=None, help='Specify push_to_hub_model_id, default None, format like organization/model_id')
-    parser.add_argument('--model_name', type=str, default='roberta-large',
-                        help='Specify model_name, default roberta-large')
-    parser.add_argument('--run_eval', type=bool, default=0, choices=[0, 1], help='Specify if need to test against MTEB, default 0')
+    parser.add_argument('--model_name', type=str, default='roberta-large', help='Specify model_name, default roberta-large')
+    parser.add_argument('--run_eval', action="store_true", help='Specify if need to test against MTEB, default 0')
+    parser.add_argument('--new_embd', action="store_true", help='If use my blazing fast model')
     args = parser.parse_args()
     print('Args:', args)
     return args
@@ -84,6 +84,7 @@ def train(args):
                   device=args.on_device,
                   is_llm=args.is_llm,
                   apply_lora=args.apply_lora,
+                  new_embd=args.new_embd,
                   lora_config_kwargs={
                       'r': args.lora_r,
                       'lora_alpha': args.lora_alpha,
@@ -146,7 +147,7 @@ def train(args):
 
 def evaluate(args):
     args.model_name_or_path = args.pretrained_model_path
-    args.angle_name_or_path = f"${args.save_dir}/best-checkpoint"
+    args.angle_name_or_path = f"{args.save_dir}/best-checkpoint"
 
     model = EmbModel(model_name_or_path=args.model_name_or_path,
                      angle_name_or_path=args.angle_name_or_path,
@@ -158,21 +159,21 @@ def evaluate(args):
     # tasks = mteb.get_tasks(task_types=[args.task_type], languages=['eng'])
     # task_names = [t.metadata.name for t in tasks]
     task_names = [
-        'ArguAna',
+        # 'ArguAna',
         'ClimateFEVER',
-        'CQADupstackRetrieval',
+        # 'CQADupstackRetrieval',
         'DBPedia',
         'FEVER',
-        'FiQA2018',
-        'HotpotQA',
-        'MSMARCO',
-        'NFCorpus',
+        # 'FiQA2018',
+        # 'HotpotQA',
+        # 'MSMARCO',
+        # 'NFCorpus',
         'NQ',
-        'QuoraRetrieval',
-        'SCIDOCS',
+        # 'QuoraRetrieval',
+        # 'SCIDOCS',
         'SciFact',
-        'Touche2020',
-        'TRECCOVID',
+        # 'Touche2020',
+        # 'TRECCOVID',
     ]
     random.shuffle(task_names)
 
@@ -198,7 +199,8 @@ def evaluate(args):
         )
         evaluation.run(
             model,
-            output_folder=f"{args.output_dir}/mteb_results/en/{args.angle_name_or_path.split('/')[-1]}",
+            output_folder=f"{args.save_dir}/mteb_results/en/{args.angle_name_or_path.split('/')[-1]}",
+            verbosity=2,
         )
         print(f"Finished task: {task}")
 
