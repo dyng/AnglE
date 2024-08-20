@@ -1335,6 +1335,7 @@ class AnglE(AngleBase):
             save_total_limit: int = 10,
             gradient_accumulation_steps: int = 1,
             fp16: Optional[bool] = None,
+            resume_from_checkpoint: bool = False,
             argument_kwargs: Optional[Dict] = None,
             trainer_kwargs: Optional[Dict] = None,
             loss_kwargs: Optional[Dict] = None,
@@ -1454,7 +1455,7 @@ class AnglE(AngleBase):
         if torch.__version__ >= "2" and sys.platform != "win32":
             self.backbone = torch.compile(self.backbone)
 
-        trainer.train()
+        trainer.train(resume_from_checkpoint=resume_from_checkpoint)
         if argument_kwargs.get('push_to_hub', False):
             trainer.push_to_hub()
         self.backbone.save_pretrained(output_dir)

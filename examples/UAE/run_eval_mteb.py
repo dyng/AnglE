@@ -33,8 +33,25 @@ if __name__ == '__main__':
                      pooling_method=args.pooling_method,
                      batch_size=args.batch_size)
 
-    tasks = mteb.get_tasks(task_types=[args.task_type], languages=['eng'])
-    task_names = [t.metadata.name for t in tasks]
+    # tasks = mteb.get_tasks(task_types=[args.task_type], languages=['eng'])
+    # task_names = [t.metadata.name for t in tasks]
+    task_names = [
+        'ArguAna',
+        'ClimateFEVER',
+        'CQADupstackRetrieval',
+        'DBPedia',
+        'FEVER',
+        'FiQA2018',
+        'HotpotQA',
+        'MSMARCO',
+        'NFCorpus',
+        'NQ',
+        'QuoraRetrieval',
+        'SCIDOCS',
+        'SciFact',
+        'Touche2020',
+        'TRECCOVID',
+    ]
     random.shuffle(task_names)
 
     for task in task_names:
@@ -52,6 +69,6 @@ if __name__ == '__main__':
         model.query_instruction_for_retrieval = instruction
 
         print(f"Start task: {task}")
-        evaluation = MTEB(tasks=[task], task_langs=['en'], eval_splits = ["test" if task not in ['MSMARCO'] else 'dev'])
+        evaluation = MTEB(tasks=[task], eval_splits = ["test" if task not in ['MSMARCO'] else 'dev'])
         evaluation.run(model, output_folder=f"en_results/{args.angle_name_or_path.split('/')[-1]}")
         print(f"Finished task: {task}")
