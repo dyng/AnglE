@@ -632,6 +632,7 @@ class AllLayerFFN(nn.Module):
         super().__init__()
         self.model = model
         self.ff1 = nn.Linear(hidden_size * (num_layers + 1), hidden_size)
+        self.lnorm = nn.LayerNorm(hidden_size)
         self.activation = nn.ReLU()
         self.ff2 = nn.Linear(hidden_size, hidden_size, bias=False)
 
@@ -644,7 +645,7 @@ class AllLayerFFN(nn.Module):
                 pooling_strategy: Optional[Union[int, str]] = None) -> torch.Tensor:
         outputs = self.model(output_hidden_states=True, **inputs)
         outputs = self.ff1(torch.cat(outputs.hidden_states, dim=-1))
-        outputs = self.activation(outputs)
+        outputs = self.activation(self.lnorm(outputs))
         outputs = self.ff2(outputs)
         # average pooling
         outputs = torch.sum(
