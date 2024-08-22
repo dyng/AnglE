@@ -646,7 +646,9 @@ class AllLayerFFN(nn.Module):
         outputs = self.ff1(torch.cat(outputs.hidden_states, dim=-1))
         outputs = self.activation(outputs)
         outputs = self.ff2(outputs)
-        outputs, _ = torch.max(outputs * inputs["attention_mask"][:, :, None], dim=1)
+        # average pooling
+        outputs = torch.sum(
+            outputs * inputs["attention_mask"][:, :, None], dim=1) / torch.sum(inputs["attention_mask"])
         return outputs
 
 
